@@ -373,14 +373,67 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
       )}
 
       <MapContainer
-        center={[-38.4161, -63.6167]}
-        zoom={5}
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
+  center={[-38.4161, -63.6167]}
+  zoom={5}
+  style={{ height: '100%', width: '100%' }}
+>
+  {/* Capa base */}
+  <TileLayer
+  url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
+/>
+  
+  {/* Etiqueta personalizada para Islas Malvinas */}
+  <Marker 
+    position={[-51.95, -59.5236]} 
+    icon={L.divIcon({
+      html: `
+        <div style="
+          font-weight: bold; 
+          color: #2c3e50; 
+          font-size: 14px; 
+          text-shadow: 2px 2px 4px white, -2px -2px 4px white, 2px -2px 4px white, -2px 2px 4px white;
+          background: rgba(255,255,255,0.9);
+          padding: 4px 8px;
+          border-radius: 4px;
+          border: 1px solid #bdc3c7;
+        ">Islas Malvinas</div>
+      `,
+      className: 'malvinas-label',
+      iconSize: [120, 30]
+    })}
+  >
+    <Popup>
+      <strong>Islas Malvinas</strong><br/>
+      Territorio Argentino
+    </Popup>
+  </Marker>
+
+  {/* Etiqueta personalizada para Islas Malvinas */}
+  <Marker 
+    position={[-51.6936, -57.8198]} 
+    icon={L.divIcon({
+      html: `
+        <div style="
+          font-weight: bold; 
+          color: #2c3e50; 
+          font-size: 10px; 
+          text-shadow: 2px 2px 4px white, -2px -2px 4px white, 2px -2px 4px white, -2px 2px 4px white;
+          background: rgba(255,255,255,0.9);
+          padding: 4px 8px;
+          border-radius: 4px;
+          border: 1px solid #bdc3c7;
+        ">Puerto Argentino</div>
+      `,
+      className: 'malvinas2-label',
+      iconSize: [110, 30]
+    })}
+  >
+    <Popup>
+      <strong>Puerto Argentino</strong><br/>
+      Territorio Argentino
+    </Popup>
+  </Marker>
         
         {institucionesFiltradas.map((institucion) => {
           const conteoPersonal = contarPersonalPorTipo(institucion);
