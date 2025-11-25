@@ -1,4 +1,4 @@
-// src/AuthContext.tsx
+// src/AuthContext.tsx (mejorado)
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface AuthContextType {
@@ -6,6 +6,7 @@ interface AuthContextType {
   user: string | null;
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,16 +25,22 @@ const VALID_CREDENTIALS = [
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Verificar si ya está autenticado al cargar la aplicación
   useEffect(() => {
-    const savedAuth = localStorage.getItem('isAuthenticated');
-    const savedUser = localStorage.getItem('user');
-    
-    if (savedAuth === 'true' && savedUser) {
-      setIsAuthenticated(true);
-      setUser(savedUser);
-    }
+    const checkAuthStatus = () => {
+      const savedAuth = localStorage.getItem('isAuthenticated');
+      const savedUser = localStorage.getItem('user');
+
+      if (savedAuth === 'true' && savedUser) {
+        setIsAuthenticated(true);
+        setUser(savedUser);
+      }
+      setIsLoading(false);
+    };
+
+    checkAuthStatus();
   }, []);
 
   const login = (username: string, password: string): boolean => {
@@ -48,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('user', username);
       return true;
     }
-    
+
     return false;
   };
 
@@ -59,8 +66,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('user');
   };
 
+  const value: AuthContextType = {
+    isAuthenticated,
+    user,
+    login,
+    logout,
+    isLoading
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

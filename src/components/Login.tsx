@@ -1,4 +1,4 @@
-// src/components/Login.tsx
+// src/components/Login.tsx (corregido)
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import './Login.css';
@@ -7,7 +7,7 @@ const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +24,20 @@ const Login: React.FC = () => {
     }
   };
 
+  // IDs únicos para evitar el warning
+  const usernameId = 'login-username-' + Date.now();
+  const passwordId = 'login-password-' + Date.now();
+
+  if (isLoading) {
+    return (
+      <div className="login-container">
+        <div className="login-form">
+          <div className="loading">Verificando sesión...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="login-container">
       <div className="login-form">
@@ -31,39 +45,47 @@ const Login: React.FC = () => {
           <h1>🏥 DISA - Sistema de Gestión</h1>
           <p>Ingrese sus credenciales para acceder</p>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="username">Usuario:</label>
+            <label htmlFor={usernameId}>Usuario:</label>
             <input
               type="text"
-              id="username"
+              id={usernameId}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Ingrese su usuario"
+              autoComplete="username"
             />
           </div>
-          
+
           <div className="form-group">
-            <label htmlFor="password">Contraseña:</label>
+            <label htmlFor={passwordId}>Contraseña:</label>
             <input
               type="password"
-              id="password"
+              id={passwordId}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Ingrese su contraseña"
+              autoComplete="current-password"
             />
           </div>
-          
+
           {error && <div className="error-message">{error}</div>}
-          
-          <button type="submit" className="btn-login">
-            🔐 Iniciar Sesión
+
+          <button type="submit" className="btn-login" disabled={isLoading}>
+            🔐 {isLoading ? 'Verificando...' : 'Iniciar Sesión'}
           </button>
         </form>
-        
+
         <div className="login-footer">
           <small>Contacte al administrador para obtener acceso</small>
+          <div style={{ marginTop: '10px', fontSize: '12px', color: '#95a5a6' }}>
+            <strong>Credenciales de prueba:</strong><br />
+            admin / admin123<br />
+            disa / disa2024<br />
+            usuario / usuario123
+          </div>
         </div>
       </div>
     </div>

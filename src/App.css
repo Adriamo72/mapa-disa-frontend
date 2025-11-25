@@ -25,7 +25,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 100;
 }
@@ -63,7 +63,7 @@ body {
   color: #2c3e50;
   border-color: white;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ===== MAIN LAYOUT ===== */
@@ -83,7 +83,7 @@ body {
   background: white;
   border-right: 1px solid #e1e5e9;
   overflow-y: auto;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
 }
 
 .mapa-container {
@@ -243,7 +243,7 @@ body {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   margin-bottom: 2rem;
 }
 
@@ -353,7 +353,7 @@ body {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 table {
@@ -458,7 +458,7 @@ tbody tr:hover {
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
 }
 
@@ -467,6 +467,7 @@ tbody tr:hover {
     opacity: 0;
     transform: translateY(-30px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -638,7 +639,7 @@ tbody tr:hover {
   .panel-lateral {
     width: 280px;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
   }
@@ -650,36 +651,36 @@ tbody tr:hover {
     gap: 1rem;
     padding: 1rem;
   }
-  
+
   .app-nav {
     width: 100%;
     justify-content: center;
   }
-  
+
   .mapa-layout {
     flex-direction: column;
   }
-  
+
   .panel-lateral {
     width: 100%;
     height: auto;
     max-height: 40vh;
   }
-  
+
   .header-acciones {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
-  
+
   .botones-crear {
     justify-content: center;
   }
-  
+
   .acciones {
     flex-direction: column;
   }
-  
+
   .modal {
     margin: 1rem;
     width: calc(100% - 2rem);
@@ -690,27 +691,28 @@ tbody tr:hover {
   .admin-panel {
     padding: 1rem;
   }
-  
+
   .admin-tabs {
     flex-direction: column;
   }
-  
+
   .admin-tab {
     border-radius: 8px;
     margin-bottom: 0.5rem;
   }
-  
+
   .gestion-instituciones,
   .gestion-personal,
   .asignacion-personal {
     padding: 1rem;
   }
-  
+
   table {
     font-size: 0.8rem;
   }
-  
-  th, td {
+
+  th,
+  td {
     padding: 0.5rem;
   }
 }
@@ -745,6 +747,7 @@ tbody tr:hover {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -828,7 +831,8 @@ tbody tr:hover {
 .botones-accion {
   display: flex;
   align-items: center;
-  gap: 10px; /* Esto agrega espacio automáticamente entre los botones */
+  gap: 10px;
+  /* Esto agrega espacio automáticamente entre los botones */
 }
 
 /* O si prefieres más control, puedes usar: */
@@ -872,7 +876,8 @@ tbody tr:hover {
 }
 
 /* Ajustes para los botones principales (mantener tamaño original) */
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
   padding: 0.75rem 1.5rem;
   font-size: 0.9rem;
 }
@@ -883,14 +888,28 @@ tbody tr:hover {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .filtros-grupo {
     margin-left: 0 !important;
     margin-bottom: 10px;
   }
-  
+
   .btn-filtro-rapido {
     width: 100%;
     justify-content: center;
   }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f8f9fa;
+}
+
+.loading-container .loading {
+  font-size: 1.2rem;
+  color: #3498db;
+  font-weight: 600;
 }
