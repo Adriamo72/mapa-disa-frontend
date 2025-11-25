@@ -1,12 +1,17 @@
+// src/App.tsx (modificado)
 import React, { useState, useEffect } from 'react';
 import MapaRecursos from './components/MapaRecursos';
 import PanelControl from './components/PanelControl';
 import AdminPanel from './components/AdminPanel';
+import Login from './components/Login';
+import LogoutButton from './components/LogoutButton';
 import { Filtros, TipoPersonal, Especialidad } from './types';
 import { tiposAPI } from './services/api';
+import { AuthProvider, useAuth } from './AuthContext';
 import './App.css';
 
-function App() {
+// Componente principal que usa autenticación
+const AppContent: React.FC = () => {
   const [vistaActiva, setVistaActiva] = useState<'mapa' | 'admin'>('mapa');
   const [filtros, setFiltros] = useState<Filtros>({
     tiposPersonal: [],
@@ -16,10 +21,13 @@ function App() {
   const [tiposPersonal, setTiposPersonal] = useState<TipoPersonal[]>([]);
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    cargarDatosFiltros();
-  }, []);
+    if (isAuthenticated) {
+      cargarDatosFiltros();
+    }
+  }, [isAuthenticated]);
 
   const cargarDatosFiltros = async () => {
     try {
@@ -32,7 +40,6 @@ function App() {
       setEspecialidades(especialidadesResponse.data || []);
     } catch (error) {
       console.error('Error cargando datos para filtros:', error);
-      // En caso de error, usar arrays vacíos
       setTiposPersonal([]);
       setEspecialidades([]);
     } finally {
@@ -44,11 +51,17 @@ function App() {
     setFiltros(prev => ({ ...prev, ...nuevosFiltros }));
   };
 
+  // Si no está autenticado, mostrar login
+  if (!isAuthenticated) {
+    return <Login />;
+  }
+
   if (loading && vistaActiva === 'mapa') {
     return (
       <div className="App">
         <header className="app-header">
           <h1>🏥 Recursos Humanos-DISA</h1>
+          <LogoutButton />
         </header>
         <main className="app-main">
           <div className="loading">Cargando...</div>
@@ -61,20 +74,23 @@ function App() {
     <div className="App">
       <header className="app-header">
         <h1>🏥 Recursos Humanos-DISA</h1>
-        <nav className="app-nav">
-          <button 
-            className={vistaActiva === 'mapa' ? 'active' : ''}
-            onClick={() => setVistaActiva('mapa')}
-          >
-            🗺️ Mapa
-          </button>
-          <button 
-            className={vistaActiva === 'admin' ? 'active' : ''}
-            onClick={() => setVistaActiva('admin')}
-          >
-            ⚙️ Administración
-          </button>
-        </nav>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <nav className="app-nav">
+            <button 
+              className={vistaActiva === 'mapa' ? 'active' : ''}
+              onClick={() => setVistaActiva('mapa')}
+            >
+              🗺️ Mapa
+            </button>
+            <button 
+              className={vistaActiva === 'admin' ? 'active' : ''}
+              onClick={() => setVistaActiva('admin')}
+            >
+              ⚙️ Administración
+            </button>
+          </nav>
+          <LogoutButton />
+        </div>
       </header>
 
       <main className="app-main">
@@ -98,6 +114,15 @@ function App() {
       </main>
     </div>
   );
-}
+};
+
+// App principal envuelta en AuthProvider
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
 
 export default App;
