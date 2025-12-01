@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Filtros } from '../types';
 import { institucionesAPI } from '../services/api';
 import 'leaflet/dist/leaflet.css';
@@ -60,7 +60,7 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
     try {
       setLoading(true);
       const response = await institucionesAPI.obtenerTodas();
-      
+
       // MANEJO SEGURO DE LA RESPUESTA Y CONVERSIÓN DE COORDENADAS
       if (response && (response.success || response.data)) {
         const institucionesData = response.data || response.instituciones || [];
@@ -77,11 +77,11 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
             // Mantener todos los tipos incluyendo destino_enn
             tipo: inst.tipo
           }))
-          .filter((inst: InstitucionConDestino) => 
-            !isNaN(inst.latitud) && !isNaN(inst.longitud) && 
+          .filter((inst: InstitucionConDestino) =>
+            !isNaN(inst.latitud) && !isNaN(inst.longitud) &&
             inst.latitud !== 0 && inst.longitud !== 0
           );
-        
+
         setInstituciones(institucionesConvertidas);
       } else {
         setInstituciones([]);
@@ -190,6 +190,22 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
     });
   };
 
+  // Función para crear el icono pulsante (DivIcon)
+  const createPulsingIcon = (count: number) => {
+    // Calcular tamaño en píxeles basado en la cantidad
+    // Ajustar estos valores según se necesite para que se vea bien en el mapa
+    const baseSize = 20;
+    const size = Math.min(Math.max(Math.sqrt(count) * 8, baseSize), 100); // Min 20px, Max 100px
+
+    return L.divIcon({
+      className: 'pulsing-div-icon',
+      html: '', // El contenido se maneja con CSS (background y border)
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2], // Centrar el icono
+      popupAnchor: [0, -size / 2] // Popup arriba del circulo
+    });
+  };
+
   // Manejadores de eventos para hover
   const handleMouseOver = (institucion: InstitucionConDestino) => {
     setHoveredInstitucion(institucion);
@@ -199,38 +215,34 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
     setHoveredInstitucion(null);
   };
 
-  const calcularRadio = (cantidadPersonal: number): number => {
-    return Math.sqrt(cantidadPersonal) * 1000;
-  };
-
   // Contar personal por tipo para los círculos
   const contarPersonalPorTipo = (institucion: InstitucionConDestino) => {
-  const counts: { [key: string]: number } = {
-    oficiales: 0,
-    suboficiales: 0,
-    civiles: 0,
-    total: institucion.personal.length
-  };
+    const counts: { [key: string]: number } = {
+      oficiales: 0,
+      suboficiales: 0,
+      civiles: 0,
+      total: institucion.personal.length
+    };
 
-  institucion.personal.forEach(p => {
-    if (p.tipo === 'militar') {
-      // Determinar si es oficial o suboficial basado en el grado
-      const grado = p.grado?.toLowerCase() || '';
-      if (grado.includes('oficial') || grado.includes('teniente') || 
-          grado.includes('capitán') || grado.includes('coronel') || 
+    institucion.personal.forEach(p => {
+      if (p.tipo === 'militar') {
+        // Determinar si es oficial o suboficial basado en el grado
+        const grado = p.grado?.toLowerCase() || '';
+        if (grado.includes('oficial') || grado.includes('teniente') ||
+          grado.includes('capitán') || grado.includes('coronel') ||
           grado.includes('almirante') || grado.includes('jefe') ||
           grado.includes('mayor') || grado.includes('brigadier')) {
-        counts.oficiales++;
-      } else {
-        counts.suboficiales++;
+          counts.oficiales++;
+        } else {
+          counts.suboficiales++;
+        }
+      } else if (p.tipo === 'civil') {
+        counts.civiles++;
       }
-    } else if (p.tipo === 'civil') {
-      counts.civiles++;
-    }
-  });
+    });
 
-  return counts;
-};
+    return counts;
+  };
 
   // Función helper para verificar si es número
   const esNumero = (valor: any): valor is number => {
@@ -246,7 +258,7 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
 
     // Filtro por tipos de personal (si hay personal)
     if (filtros.tiposPersonal.length > 0 && inst.personal.length > 0) {
-      const tieneTipoPersonal = inst.personal.some(p => 
+      const tieneTipoPersonal = inst.personal.some(p =>
         p.tipo && filtros.tiposPersonal.includes(p.tipo === 'militar' ? 1 : 2)
       );
       if (!tieneTipoPersonal) return false;
@@ -254,7 +266,7 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
 
     // Filtro por especialidades
     if (filtros.especialidades.length > 0 && inst.personal.length > 0) {
-      const tieneEspecialidad = inst.personal.some(p => 
+      const tieneEspecialidad = inst.personal.some(p =>
         p.especialidad && filtros.especialidades.includes(p.especialidad.id)
       );
       if (!tieneEspecialidad) return false;
@@ -280,58 +292,28 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
   return (
     <div style={{ height: '100vh', width: '100%', position: 'relative' }}>
       {/* Panel de información */}
-      <div style={{
-        position: 'absolute',
-        top: '10px',
-        left: '10px',
-        zIndex: 1000,
-        background: 'white',
-        padding: '15px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-        maxWidth: '320px',
-        border: '2px solid #f0f0f0'
-      }}>
-        <h4 style={{ 
-          margin: '0 0 12px 0', 
-          fontSize: '16px',
-          fontWeight: 'bold',
-          color: '#2c3e50',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
+      <div className="map-info-panel">
+        <h4 className="map-info-header">
           <span style={{ fontSize: '18px' }}>🗺️</span>
           Mapa de Recursos
         </h4>
-        <div style={{ fontSize: '13px', color: '#555', lineHeight: '1.5' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+        <div className="map-info-content">
+          <div className="map-info-item">
             <span style={{ fontSize: '14px' }}>🏥</span>
             <span>Hospitales Navales: <strong style={{ color: '#e74c3c' }}>{conteoTipos.hospitales}</strong></span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <div className="map-info-item">
             <span style={{ fontSize: '14px' }}>💊</span>
             <span>Enfermerías Navales: <strong style={{ color: '#3498db' }}>{conteoTipos.enfermerias}</strong></span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+          <div className="map-info-item">
             <span style={{ fontSize: '14px' }}>🎯</span>
             <span>Destinos sin EE.NN: <strong style={{ color: '#9b59b6' }}>{conteoTipos.destinosEnn}</strong></span>
           </div>
-          <div style={{ 
-            marginTop: '10px', 
-            paddingTop: '10px', 
-            borderTop: '1px solid #eee',
-            fontWeight: 'bold',
-            fontSize: '14px',
-            color: '#2c3e50'
-          }}>
+          <div className="map-info-footer">
             Total: {institucionesFiltradas.length} instituciones
           </div>
-          <div style={{ 
-            marginTop: '6px', 
-            fontSize: '12px',
-            color: '#7f8c8d'
-          }}>
+          <div className="map-info-subfooter">
             Personal total: {institucionesFiltradas.reduce((total, inst) => total + inst.personal.length, 0)}
           </div>
         </div>
@@ -339,33 +321,13 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
 
       {/* Tooltip global para el destino (cuatrigrama) */}
       {hoveredInstitucion && (
-        <div style={{
-          position: 'absolute',
-          top: '10px',
-          right: '10px',
-          zIndex: 1000,
-          background: '#2c3e50',
-          color: 'white',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          fontSize: '14px',
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          maxWidth: '400px'
-        }}>
+        <div className="map-tooltip">
           <span style={{ fontSize: '16px' }}>{getIconoPorTipo(hoveredInstitucion.tipo)}</span>
           <div>
             <div style={{ fontSize: '16px', marginBottom: '2px' }}>
               {hoveredInstitucion.destino}
             </div>
-            <div style={{ 
-              fontSize: '12px', 
-              opacity: 0.8,
-              color: '#ecf0f1'
-            }}>
+            <div className="map-tooltip-sub">
               {getTipoTexto(hoveredInstitucion.tipo)}
             </div>
           </div>
@@ -373,72 +335,59 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
       )}
 
       <MapContainer
-  center={[-38.4161, -63.6167]}
-  zoom={5}
-  style={{ height: '100%', width: '100%' }}
->
-  {/* Capa base */}
-  <TileLayer
-  url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
-/>
-  
-  {/* Etiqueta personalizada para Islas Malvinas */}
-  <Marker 
-    position={[-51.95, -59.5236]} 
-    icon={L.divIcon({
-      html: `
-        <div style="
-          font-weight: bold; 
-          color: #2c3e50; 
-          font-size: 14px; 
-          text-shadow: 2px 2px 4px white, -2px -2px 4px white, 2px -2px 4px white, -2px 2px 4px white;
-          background: rgba(255,255,255,0.9);
-          padding: 4px 8px;
-          border-radius: 4px;
-          border: 1px solid #bdc3c7;
-        ">Islas Malvinas</div>
-      `,
-      className: 'malvinas-label',
-      iconSize: [120, 30]
-    })}
-  >
-    <Popup>
-      <strong>Islas Malvinas</strong><br/>
-      Territorio Argentino
-    </Popup>
-  </Marker>
+        center={[-38.4161, -63.6167]}
+        zoom={5}
+        style={{ height: '100%', width: '100%' }}
+        preferCanvas={false}
+      >
+        {/* Capa base */}
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a>'
+        />
 
-  {/* Etiqueta personalizada para Islas Malvinas */}
-  <Marker 
-    position={[-51.6936, -57.8198]} 
-    icon={L.divIcon({
-      html: `
-        <div style="
-          font-weight: bold; 
-          color: #2c3e50; 
-          font-size: 10px; 
-          text-shadow: 2px 2px 4px white, -2px -2px 4px white, 2px -2px 4px white, -2px 2px 4px white;
-          background: rgba(255,255,255,0.9);
-          padding: 4px 8px;
-          border-radius: 4px;
-          border: 1px solid #bdc3c7;
-        ">Puerto Argentino</div>
-      `,
-      className: 'malvinas2-label',
-      iconSize: [110, 30]
-    })}
-  >
-    <Popup>
-      <strong>Puerto Argentino</strong><br/>
-      Territorio Argentino
-    </Popup>
-  </Marker>
-        
+        {/* Etiqueta personalizada para Islas Malvinas */}
+        <Marker
+          position={[-51.95, -59.5236]}
+          icon={L.divIcon({
+            html: `
+              <div class="map-label">Islas Malvinas</div>
+            `,
+            className: 'malvinas-label',
+            iconSize: [120, 30]
+          })}
+        >
+          <Popup>
+            <div className="popup-container">
+              <strong>Islas Malvinas</strong><br />
+              Territorio Argentino
+            </div>
+          </Popup>
+        </Marker>
+
+        {/* Etiqueta personalizada para Puerto Argentino */}
+        <Marker
+          position={[-51.6936, -57.8198]}
+          icon={L.divIcon({
+            html: `
+              <div class="map-label">Puerto Argentino</div>
+            `,
+            className: 'malvinas2-label',
+            iconSize: [110, 30]
+          })}
+        >
+          <Popup>
+            <div className="popup-container">
+              <strong>Puerto Argentino</strong><br />
+              Territorio Argentino
+            </div>
+          </Popup>
+        </Marker>
+
         {institucionesFiltradas.map((institucion) => {
           const conteoPersonal = contarPersonalPorTipo(institucion);
           const isHovered = hoveredInstitucion?.id === institucion.id;
-          
+
           // Verificar que las coordenadas sean números válidos
           if (!esNumero(institucion.latitud) || !esNumero(institucion.longitud)) {
             return null;
@@ -456,107 +405,64 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
                 }}
               >
                 <Popup>
-                  <div style={{ minWidth: '280px', maxWidth: '400px' }}>
-                    <h3 style={{ 
-                      margin: '0 0 10px 0', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      fontSize: '16px',
-                      color: '#2c3e50'
-                    }}>
-                      <span style={{ fontSize: '18px' }}>{getIconoPorTipo(institucion.tipo)}</span> 
+                  <div className="popup-container">
+                    <h3 className="popup-header">
+                      <span style={{ fontSize: '18px' }}>{getIconoPorTipo(institucion.tipo)}</span>
                       <span>
                         {institucion.destino} - {institucion.nombre}
                       </span>
                     </h3>
-                    <div style={{ 
-                      backgroundColor: '#f8f9fa', 
-                      padding: '8px 12px', 
-                      borderRadius: '6px',
-                      marginBottom: '10px'
-                    }}>
-                      <p style={{ margin: '4px 0' }}><strong>Tipo:</strong> {getTipoTexto(institucion.tipo)}</p>
-                      <p style={{ margin: '4px 0' }}><strong>Categoría:</strong> {institucion.categoria || 'N/A'}</p>
-                      <p style={{ margin: '4px 0' }}><strong>Teléfono:</strong> {institucion.telefono || 'N/A'}</p>
+                    <div className="popup-info-box">
+                      <p><strong>Tipo:</strong> {getTipoTexto(institucion.tipo)}</p>
+                      <p><strong>Categoría:</strong> {institucion.categoria || 'N/A'}</p>
+                      <p><strong>Teléfono:</strong> {institucion.telefono || 'N/A'}</p>
                     </div>
-                    
-                    <div style={{ 
-                      margin: '12px 0 6px 0', 
-                      borderTop: '1px solid #eee', 
-                      paddingTop: '10px'
-                    }}>
-                      <h4 style={{ 
-                        margin: '0 0 8px 0',
-                        fontSize: '14px',
-                        color: '#34495e'
-                      }}>
+
+                    <div className="popup-stats-section">
+                      <h4 className="popup-stats-header">
                         Distribución del Personal:
                       </h4>
-                      <div style={{ 
-                        display: 'flex', 
+                      <div style={{
+                        display: 'flex',
                         flexDirection: 'column',
-                        gap: '4px',
-                        fontSize: '13px'
+                        gap: '4px'
                       }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div className="popup-stat-item">
                           <span style={{ color: '#e74c3c', fontWeight: 'bold' }}>Oficiales:</span>
                           <span style={{ fontWeight: 'bold' }}>{conteoPersonal.oficiales}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div className="popup-stat-item">
                           <span style={{ color: '#f39c12', fontWeight: 'bold' }}>Suboficiales:</span>
                           <span style={{ fontWeight: 'bold' }}>{conteoPersonal.suboficiales}</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <div className="popup-stat-item">
                           <span style={{ color: '#3498db', fontWeight: 'bold' }}>Civiles:</span>
                           <span style={{ fontWeight: 'bold' }}>{conteoPersonal.civiles}</span>
                         </div>
-                        <div style={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between',
-                          marginTop: '6px',
-                          paddingTop: '6px',
-                          borderTop: '1px solid #ecf0f1',
-                          fontWeight: 'bold'
-                        }}>
+                        <div className="popup-stat-total">
                           <span>Total:</span>
                           <span>{conteoPersonal.total}</span>
                         </div>
                       </div>
                     </div>
-                    
+
                     {institucion.personal.length === 0 ? (
-                      <p style={{ 
-                        margin: '8px 0', 
-                        color: '#999', 
-                        fontStyle: 'italic',
-                        textAlign: 'center',
-                        padding: '10px'
-                      }}>
+                      <p className="popup-empty">
                         No hay personal asignado
                       </p>
                     ) : (
-                      <div style={{ 
-                        maxHeight: '250px', 
-                        overflowY: 'auto',
-                        border: '1px solid #ecf0f1',
-                        borderRadius: '6px'
-                      }}>
+                      <div className="popup-personal-list">
                         {institucion.personal.map((p, index) => (
-                          <div key={index} style={{ 
-                            margin: '6px 0', 
-                            padding: '8px',
-                            borderLeft: `4px solid ${p.tipo === 'militar' ? '#f39c12' : '#3498db'}`,
-                            backgroundColor: '#f8f9fa',
-                            borderRadius: '0 4px 4px 0'
+                          <div key={index} className="popup-personal-item" style={{
+                            borderLeft: `4px solid ${p.tipo === 'militar' ? '#f39c12' : '#3498db'}`
                           }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                              <strong style={{ fontSize: '13px' }}>
+                              <strong className="popup-personal-name">
                                 {p.tipo === 'militar' ? '🎖️ ' : '👨‍💼 '}
                                 {p.apellido}, {p.nombre}
                               </strong>
-                              <span style={{ 
-                                fontSize: '10px', 
+                              <span style={{
+                                fontSize: '10px',
                                 backgroundColor: p.tipo === 'militar' ? '#f39c12' : '#3498db',
                                 color: 'white',
                                 padding: '2px 8px',
@@ -566,7 +472,7 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
                                 {p.tipo}
                               </span>
                             </div>
-                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
+                            <div className="popup-personal-detail">
                               {p.tipo === 'militar' ? (
                                 <>
                                   {p.grado && <span>Grado: {p.grado} </span>}
@@ -578,8 +484,8 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
                               )}
                             </div>
                             {p.especialidad && (
-                              <div style={{ 
-                                fontSize: '11px', 
+                              <div style={{
+                                fontSize: '11px',
                                 color: p.especialidad.color,
                                 fontWeight: 'bold',
                                 marginBottom: '2px'
@@ -588,7 +494,7 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
                               </div>
                             )}
                             {p.matricula && (
-                              <div style={{ fontSize: '11px', color: '#666' }}>
+                              <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
                                 Matrícula: {p.matricula}
                               </div>
                             )}
@@ -600,42 +506,36 @@ const MapaRecursos: React.FC<MapaRecursosProps> = ({ filtros }) => {
                 </Popup>
               </Marker>
 
-              {/* Círculo de cantidad total de personal */}
+              {/* Círculo de cantidad total de personal (Ahora usando Marker + DivIcon para animación garantizada) */}
               {conteoPersonal.total > 0 && (
-                <Circle
-                  key={`${institucion.id}-total`}
-                  center={[institucion.latitud, institucion.longitud]}
-                  radius={calcularRadio(conteoPersonal.total)}
-                  pathOptions={{
-                    color: '#2c3e50',
-                    fillColor: '#2c3e50',
-                    fillOpacity: 0.15,
-                    weight: 2,
-                    opacity: 0.7
-                  }}
+                <Marker
+                  key={`${institucion.id}-total-pulse`}
+                  position={[institucion.latitud, institucion.longitud]}
+                  icon={createPulsingIcon(conteoPersonal.total)}
+                  zIndexOffset={-100} // Para que quede detrás del marcador principal
                 >
                   <Popup>
-                  <div style={{ minWidth: '180px' }}>
-                    <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>
-                      {institucion.destino} - {institucion.nombre}
-                    </h4>
-                    <div style={{ fontSize: '13px' }}>
-                      <p style={{ margin: '4px 0', color: '#e74c3c' }}>
-                        Oficiales: {conteoPersonal.oficiales}
-                      </p>
-                      <p style={{ margin: '4px 0', color: '#f39c12' }}>
-                        Suboficiales: {conteoPersonal.suboficiales}
-                      </p>
-                      <p style={{ margin: '4px 0', color: '#3498db' }}>
-                        Civiles: {conteoPersonal.civiles}
-                      </p>
-                      <p style={{ margin: '6px 0 0 0', fontWeight: 'bold', borderTop: '1px solid #eee', paddingTop: '6px' }}>
-                        Total: {conteoPersonal.total}
-                      </p>
+                    <div className="popup-container" style={{ minWidth: '180px' }}>
+                      <h4 className="popup-header" style={{ fontSize: '14px' }}>
+                        {institucion.destino} - {institucion.nombre}
+                      </h4>
+                      <div style={{ fontSize: '13px' }}>
+                        <p style={{ margin: '4px 0', color: '#e74c3c' }}>
+                          Oficiales: {conteoPersonal.oficiales}
+                        </p>
+                        <p style={{ margin: '4px 0', color: '#f39c12' }}>
+                          Suboficiales: {conteoPersonal.suboficiales}
+                        </p>
+                        <p style={{ margin: '4px 0', color: '#3498db' }}>
+                          Civiles: {conteoPersonal.civiles}
+                        </p>
+                        <div className="popup-stat-total">
+                          Total: {conteoPersonal.total}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Popup>
-                </Circle>
+                  </Popup>
+                </Marker>
               )}
             </React.Fragment>
           );

@@ -2,35 +2,36 @@
 .logout-container {
   display: flex;
   align-items: center;
-  gap: 15px;
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .user-info {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
 }
 
 .btn-logout {
-  background: rgba(231, 76, 60, 0.8);
+  background: var(--danger-color);
   color: white;
   border: none;
-  padding: 8px 15px;
-  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-full);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
 }
 
 .btn-logout:hover {
-  background: rgba(192, 57, 43, 0.9);
+  filter: brightness(1.1);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  box-shadow: var(--shadow-sm);
 }

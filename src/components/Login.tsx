@@ -1,4 +1,4 @@
-// src/components/Login.tsx (corregido)
+// src/components/Login.tsx
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import './Login.css';
@@ -80,7 +80,7 @@ const Login: React.FC = () => {
 
         <div className="login-footer">
           <small>Contacte al administrador para obtener acceso</small>
-          <div style={{ marginTop: '10px', fontSize: '12px', color: '#95a5a6' }}>
+          <div className="login-credentials">
             <strong>Credenciales de prueba:</strong><br />
             admin / admin123<br />
             disa / disa2024<br />

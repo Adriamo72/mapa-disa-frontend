@@ -1,8 +1,9 @@
-// src/App.tsx (CORREGIDO)
+// src/App.tsx (CORREGIDO - sin warnings)
 import React, { useState, useEffect } from 'react';
 import MapaRecursos from './components/MapaRecursos';
 import PanelControl from './components/PanelControl';
 import AdminPanel from './components/AdminPanel';
+import DistribucionPanel from './components/DistribucionPanel';
 import Login from './components/Login';
 import LogoutButton from './components/LogoutButton';
 import { Filtros, TipoPersonal, Especialidad } from './types';
@@ -41,7 +42,7 @@ const LoadingScreen: React.FC = () => (
 
 // Componente principal que usa autenticación
 const AppContent: React.FC = () => {
-  const [vistaActiva, setVistaActiva] = useState<'mapa' | 'admin'>('mapa');
+  const [vistaActiva, setVistaActiva] = useState<'mapa' | 'distribucion' | 'admin'>('mapa');
   const [filtros, setFiltros] = useState<Filtros>({
     tiposPersonal: [],
     tipoInstitucion: [],
@@ -49,7 +50,7 @@ const AppContent: React.FC = () => {
   });
   const [tiposPersonal, setTiposPersonal] = useState<TipoPersonal[]>([]);
   const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [filtrosLoading, setFiltrosLoading] = useState(false); // Cambiado el nombre
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -60,7 +61,7 @@ const AppContent: React.FC = () => {
 
   const cargarDatosFiltros = async () => {
     try {
-      setLoading(true);
+      setFiltrosLoading(true); // Usando el nuevo nombre
 
       const [tiposResponse, especialidadesResponse] = await Promise.allSettled([
         tiposAPI.obtenerTiposPersonal(),
@@ -84,7 +85,7 @@ const AppContent: React.FC = () => {
       setTiposPersonal(DEFAULT_TIPOS_PERSONAL);
       setEspecialidades(DEFAULT_ESPECIALIDADES);
     } finally {
-      setLoading(false);
+      setFiltrosLoading(false); // Usando el nuevo nombre
     }
   };
 
@@ -102,17 +103,38 @@ const AppContent: React.FC = () => {
     return <Login />;
   }
 
+  // Mostrar loading para filtros si es necesario
+  if (filtrosLoading && vistaActiva === 'mapa') {
+    return (
+      <div className="App">
+        <header className="app-header">
+          <h1>🏥 Recursos Humanos-DISA</h1>
+          <LogoutButton />
+        </header>
+        <main className="app-main">
+          <div className="loading">Cargando datos del mapa...</div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <header className="app-header">
         <h1>🏥 Recursos Humanos-DISA</h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <div className="header-actions">
           <nav className="app-nav">
             <button
               className={vistaActiva === 'mapa' ? 'active' : ''}
               onClick={() => setVistaActiva('mapa')}
             >
               🗺️ Mapa
+            </button>
+            <button
+              className={vistaActiva === 'distribucion' ? 'active' : ''}
+              onClick={() => setVistaActiva('distribucion')}
+            >
+              📊 Distribución
             </button>
             <button
               className={vistaActiva === 'admin' ? 'active' : ''}
@@ -140,6 +162,8 @@ const AppContent: React.FC = () => {
               <MapaRecursos filtros={filtros} />
             </section>
           </div>
+        ) : vistaActiva === 'distribucion' ? (
+          <DistribucionPanel />
         ) : (
           <AdminPanel />
         )}
@@ -148,7 +172,7 @@ const AppContent: React.FC = () => {
   );
 };
 
-// App principal - SIMPLIFICADA para evitar doble render
+// App principal
 const App: React.FC = () => {
   return (
     <AuthProvider>
